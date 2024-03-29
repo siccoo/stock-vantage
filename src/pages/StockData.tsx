@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import apiRequest from '../utils/apiRequest';
+import React, { useEffect, useState } from "react";
+import apiRequest from "../utils/apiRequest";
 
 interface StockData {
-  'Meta Data': {
-    '2. Symbol': string;
-    '3. Last Refreshed': string;
-    '4. Interval': string;
+  "Meta Data": {
+    "2. Symbol": string;
+    "3. Last Refreshed": string;
+    "4. Interval": string;
   };
-  'Time Series (5min)': {
+  "Time Series (5min)": {
     [key: string]: {
-      '1. open': string;
-      '2. high': string;
-      '3. low': string;
-      '4. close': string;
-      '5. volume': string;
+      "1. open": string;
+      "2. high": string;
+      "3. low": string;
+      "4. close": string;
+      "5. volume": string;
     };
   };
 }
@@ -22,6 +22,7 @@ const StockData: React.FC = () => {
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [displayedPrices, setDisplayedPrices] = useState<number>(5);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,13 +31,17 @@ const StockData: React.FC = () => {
         setStockData(data);
         setIsLoading(false);
       } catch (error) {
-        setError('Error fetching data. Please try again later.');
+        setError("Error fetching data. Please try again later.");
         setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
+
+  const handleViewMore = () => {
+    setDisplayedPrices((prevCount) => prevCount + 5);
+  };
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6 bg-gray-100 rounded-lg shadow-md">
@@ -45,17 +50,38 @@ const StockData: React.FC = () => {
       {error && <p className="text-red-500">{error}</p>}
       {stockData && (
         <div>
-          <p className="mb-2"><span className="font-semibold">Symbol:</span> {stockData['Meta Data']['2. Symbol']}</p>
-          <p className="mb-2"><span className="font-semibold">Last Refreshed:</span> {stockData['Meta Data']['3. Last Refreshed']}</p>
-          <p className="mb-2"><span className="font-semibold">Interval:</span> {stockData['Meta Data']['4. Interval']}</p>
+          <p className="mb-2">
+            <span className="font-semibold">Symbol:</span>{" "}
+            {stockData["Meta Data"]["2. Symbol"]}
+          </p>
+          <p className="mb-2">
+            <span className="font-semibold">Last Refreshed:</span>{" "}
+            {stockData["Meta Data"]["3. Last Refreshed"]}
+          </p>
+          <p className="mb-2">
+            <span className="font-semibold">Interval:</span>{" "}
+            {stockData["Meta Data"]["4. Interval"]}
+          </p>
           <p className="font-semibold">Stock Prices:</p>
           <ul>
-            {Object.entries(stockData['Time Series (5min)']).map(([time, data]) => (
-              <li key={time} className="mb-2">
-                <span className="font-semibold">{time}:</span> {data['1. open']}
-              </li>
-            ))}
+            {Object.entries(stockData["Time Series (5min)"])
+              .slice(0, displayedPrices)
+              .map(([time, data]) => (
+                <li key={time} className="mb-2">
+                  <span className="font-semibold">{time}:</span>{" "}
+                  {data["1. open"]}
+                </li>
+              ))}
           </ul>
+          {Object.entries(stockData["Time Series (5min)"]).length >
+            displayedPrices && (
+            <button
+              className="bg-gray-800 text-white px-4 py-2 rounded mt-2"
+              onClick={handleViewMore}
+            >
+              View More
+            </button>
+          )}
         </div>
       )}
     </div>
